@@ -1,0 +1,4 @@
+#!/bin/sh
+
+./gradlew jar -x test
+java -cp build/libs/adventofcode-kotlin-2025-1.0-SNAPSHOT.jar "Day${1}Kt"
