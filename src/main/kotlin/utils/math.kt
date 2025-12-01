@@ -2,6 +2,7 @@
 
 package utils
 
+import kotlin.experimental.ExperimentalTypeInference
 import kotlin.math.absoluteValue
 import kotlin.math.pow
 
@@ -106,6 +107,25 @@ infix fun Int.pow(power: Int): Long =
         require(it <= Long.MAX_VALUE.toDouble()) { "$this to the power of $power exceeds Long range" }
         it.toLong()
     }
+
+fun Iterable<Long>.product(): Long = reduce(Long::safeTimes)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+inline fun <T> Iterable<T>.productOf(selector: (T) -> Long): Long = fold(1L) { p, n -> p safeTimes selector(n) }
+
+fun Sequence<Long>.product(): Long = reduce(Long::safeTimes)
+
+@JvmName("intProduct")
+fun Iterable<Int>.product(): Long = map { it.toLong() }.reduce(Long::safeTimes)
+
+@OptIn(ExperimentalTypeInference::class)
+@OverloadResolutionByLambdaReturnType
+@JvmName("intProductOf")
+inline fun <T> Iterable<T>.productOf(selector: (T) -> Int): Long = fold(1L) { p, n -> p safeTimes selector(n) }
+
+@JvmName("intProduct")
+fun Sequence<Int>.product(): Long = fold(1L, Long::safeTimes)
 
 infix fun Int.safeTimes(other: Int) = (this * other).also {
     require(other == 0 || it / other == this) { "Integer overflow at $this * $other" }

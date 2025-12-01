@@ -4,7 +4,7 @@ class DaysTest {
 
     @TestFactory
     fun `AoC 2025`() = aocTests {
-//        test<Day01>(<>, <>)
+        test<Day01>(969, 5887)
 //        test<Day02>(<>, <>)
 //        test<Day03>(<>, <>)
 //        test<Day04>(<>, <>)

@@ -46,6 +46,12 @@ fun <T, P : Comparable<P>> minPriorityQueueOf(elements: Iterable<Pair<T, P>>): M
     MinPriorityQueueImpl<T, P>().apply { elements.forEach { this += it } }
 
 /**
+ * Creates a [MinPriorityQueue] with all [elements] initially added with their given priority by block.
+ */
+inline fun <T, P : Comparable<P>> minPriorityQueueOf(vararg elements: T, priority: (T) -> P): MinPriorityQueue<T, P> =
+    MinPriorityQueueImpl<T, P>().apply { elements.forEach { insertOrUpdate(it, priority(it)) } }
+
+/**
  * The most general aspects of any queue defined in this context.
  *
  * Queues hold ordered elements and offer functions to retrieve first and last elements.
@@ -172,7 +178,8 @@ interface MinPriorityQueue<T, P : Comparable<P>> : CommonQueue<T>, Set<T> {
     }
 }
 
-private class MinPriorityQueueImpl<T, P : Comparable<P>>(
+@PublishedApi
+internal class MinPriorityQueueImpl<T, P : Comparable<P>>(
     private val elementToPriority: MutableMap<T, P> = mutableMapOf(),
     private val priorityToElements: MutableMap<P, MutableSet<T>> = mutableMapOf(),
     private val priorities: SortedSet<P> = sortedSetOf(),

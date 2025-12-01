@@ -51,24 +51,6 @@ class InfiniteList<T>(private val backingList: List<T>) : List<T> by backingList
 
 fun <K, V> Map<K, V>.flip(): Map<V, K> = asIterable().associate { (k, v) -> v to k }
 
-fun Iterable<Long>.product(): Long = reduce(Long::safeTimes)
-
-@OptIn(ExperimentalTypeInference::class)
-@OverloadResolutionByLambdaReturnType
-inline fun <T> Iterable<T>.productOf(selector: (T) -> Long): Long = fold(1L) { p, n -> p safeTimes selector(n) }
-
-fun Sequence<Long>.product(): Long = reduce(Long::safeTimes)
-
-@JvmName("intProduct")
-fun Iterable<Int>.product(): Long = fold(1L, Long::safeTimes)
-
-@OptIn(ExperimentalTypeInference::class)
-@OverloadResolutionByLambdaReturnType
-@JvmName("intProductOf")
-inline fun <T> Iterable<T>.productOf(selector: (T) -> Int): Long = fold(1L) { p, n -> p safeTimes selector(n) }
-
-@JvmName("intProduct")
-fun Sequence<Int>.product(): Long = fold(1L, Long::safeTimes)
 
 fun Long.checkedToInt(): Int = let {
     check(it in Int.MIN_VALUE..Int.MAX_VALUE) { "Value does not fit in Int: $it" }

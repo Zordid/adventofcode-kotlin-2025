@@ -23,6 +23,14 @@ class MinPriorityQueueTest : StringSpec({
         q.shouldBeEmpty()
     }
 
+    "creation by lambda works" {
+        val q = minPriorityQueueOf('c', 'b', 'a') { it }
+        q.extractMin() shouldBe 'a'
+        q.extractMin() shouldBe 'b'
+        q.extractMin() shouldBe 'c'
+        q.shouldBeEmpty()
+    }
+
     "priority can be changed" {
         val q = minPriorityQueueOf("a" to 2, "b" to 1)
         q.insertOrUpdate("c", 99)
