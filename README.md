@@ -4,7 +4,7 @@ Solutions in [Kotlin][kotlin], the most **fun** language on the planet!
 
 My solutions to the ingenious Advent Of Code[^aoc] by Eric Wastl.
 
-This is my eighth year of Advent of Code coding in a row - my body gets trained again to get up at 5:45 in the
+This is my ninth year of Advent of Code coding in a row - my body gets trained again to get up at 5:45 in the
 morning for almost a month... the addiction is real! This year even more coders are saving Christmas using Kotlin -
 thanks to JetBrains' support and their cool content! Thx, [Sebi][sebi]
 
