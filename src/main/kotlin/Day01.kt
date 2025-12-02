@@ -1,34 +1,29 @@
+import kotlin.math.absoluteValue
+
 class Day01 : Day(1, 2025, "Secret Entrance") {
     private val turns = input.lines.map {
-        it.first() to it.drop(1).toInt()
+        it.replace('L', '-').replace('R', '+').toInt()
     }
 
     override fun part1(): Int {
-        val result = turns.runningFold(50) { pos, (d, n) ->
-            val next = when (d) {
-                'L' -> pos - n
-                else -> pos + n
-            }
-            next % 100.also { log { "$pos $d $n -> $it" } }
+        val result = turns.runningFold(50) { pos, turn ->
+            log((pos + turn) % 100) { "$pos $turn -> $it" }
         }
 
         return result.count { it == 0 }
     }
 
     override fun part2(): Int {
-        val result = turns.fold(50 to 0) { (pos, count), (d, n) ->
-            val completeTurns = n / 100
-            val remainingTurns = n % 100
-            if (remainingTurns == 0) return@fold (pos to count + completeTurns)
+        val result = turns.fold(50 to 0) { (pos, count), turn ->
+            val completeTurns = turn.absoluteValue / 100
+            val remainingTurns = turn % 100
 
-            val (nextPos, passesZero) = when (d) {
-                'L' -> (pos - remainingTurns).mod(100) to (pos > 0 && pos - remainingTurns < 0)
-                else -> (pos + remainingTurns).mod(100) to (pos > 0 && pos + remainingTurns > 100)
-            }
-            val pointsAtZero = nextPos == 0
+            val nextPos = (pos + remainingTurns).mod(100)
+            val passesZero = pos > 0 && pos + remainingTurns !in 1 until 100
+            val pointsAtZero = pos > 0 && nextPos == 0
 
-            (nextPos to (count + completeTurns + (if (passesZero || pointsAtZero) 1 else 0))).also {
-                log { "The dial is rotated $d$n to point at ${it.first} (0-counter is ${it.second})" }
+            log(nextPos to (count + completeTurns + (if (passesZero || pointsAtZero) 1 else 0))) {
+                "The dial is rotated $turn to point at ${it.first} (0-counter is ${it.second})"
             }
         }
 

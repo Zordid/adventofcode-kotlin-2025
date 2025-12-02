@@ -79,6 +79,9 @@ var globalTestData: String? = null
 
 var logEnabled = false
 
+inline fun <T> log(value: T, crossinline format: (T) -> String = { it.toString() }): T =
+    value.also { log { format(value) } }
+
 fun log(clearEol: Boolean = false, lazyMessage: Terminal.() -> Any?) {
     if (logEnabled && verbose) alog(clearEol, lazyMessage)
 }
