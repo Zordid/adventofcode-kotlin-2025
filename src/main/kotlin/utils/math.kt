@@ -4,36 +4,6 @@ package utils
 
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.math.absoluteValue
-import kotlin.math.pow
-
-fun powerOf10(n: Int): Int = powersOf10[n]
-fun powerOf10L(n: Int): Long = powersOf10L[n]
-
-private val powersOf10: Array<Int> =
-    arrayOf(1, 10, 100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000)
-
-private val powersOf10L: Array<Long> =
-    arrayOf(
-        1,
-        10,
-        100,
-        1_000,
-        10_000,
-        100_000,
-        1_000_000,
-        10_000_000,
-        100_000_000,
-        1_000_000_000,
-        10_000_000_000,
-        100_000_000_000,
-        1_000_000_000_000,
-        10_000_000_000_000,
-        100_000_000_000_000,
-        1_000_000_000_000_000,
-        10_000_000_000_000_000,
-        100_000_000_000_000_000,
-        1_000_000_000_000_000_000,
-    )
 
 /**
  * Euclid's algorithm for finding the greatest common divisor of a and b.
@@ -99,14 +69,24 @@ fun Long.primes(): Sequence<Long> = sequence {
         yield(n)
 }
 
-infix fun Number.pow(power: Number): Double =
-    toDouble().pow(power.toDouble())
+infix fun Int.pow(power: Int): Long {
+    require(power >= 0) { "Power must be non-negative" }
+    if (power == 0) return 1L
+    if (this == 10) return powersOf10L[power]
 
-infix fun Int.pow(power: Int): Long =
-    toDouble().pow(power.toDouble()).let {
-        require(it <= Long.MAX_VALUE.toDouble()) { "$this to the power of $power exceeds Long range" }
-        it.toLong()
+    var p = power
+    var b = this.toLong()
+    var res = 1L
+    while (p > 0) {
+        if (p % 2 == 1) res = res safeTimes b
+        p /= 2
+        if (p > 0) b = b safeTimes b
     }
+    return res
+}
+
+fun powerOf10(n: Int): Int = powersOf10[n]
+fun powerOf10L(n: Int): Long = powersOf10L[n]
 
 fun Iterable<Long>.product(): Long = reduce(Long::safeTimes)
 
@@ -127,18 +107,45 @@ inline fun <T> Iterable<T>.productOf(selector: (T) -> Int): Long = fold(1L) { p,
 @JvmName("intProduct")
 fun Sequence<Int>.product(): Long = fold(1L, Long::safeTimes)
 
-infix fun Int.safeTimes(other: Int) = (this * other).also {
-    require(other == 0 || it / other == this) { "Integer overflow at $this * $other" }
+infix fun Int.safeTimes(other: Int) = (this * other).also { check ->
+    require(other == 0 || check / other == this) { "Integer overflow at $this * $other" }
 }
 
-infix fun Long.safeTimes(other: Long) = (this * other).also {
-    require(other == 0L || it / other == this) { "Long overflow at $this * $other" }
+infix fun Long.safeTimes(other: Long) = (this * other).also { check ->
+    require(other == 0L || check / other == this) { "Long overflow at $this * $other" }
 }
 
-infix fun Long.safeTimes(other: Int) = (this * other).also {
-    require(other == 0 || it / other == this) { "Long overflow at $this * $other" }
+infix fun Long.safeTimes(other: Int) = (this * other).also { check ->
+    require(other == 0 || check / other == this) { "Long overflow at $this * $other" }
 }
 
-infix fun Int.safeTimes(other: Long) = (this.toLong() * other).also {
-    require(other == 0L || it / other == this.toLong()) { "Long overflow at $this * $other" }
+infix fun Int.safeTimes(other: Long) = (this.toLong() * other).also { check ->
+    require(other == 0L || check / other == this.toLong()) { "Long overflow at $this * $other" }
 }
+
+private val powersOf10: Array<Int> =
+    arrayOf(1, 10, 100, 1_000, 10_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000)
+
+private val powersOf10L: Array<Long> =
+    arrayOf(
+        1,
+        10,
+        100,
+        1_000,
+        10_000,
+        100_000,
+        1_000_000,
+        10_000_000,
+        100_000_000,
+        1_000_000_000,
+        10_000_000_000,
+        100_000_000_000,
+        1_000_000_000_000,
+        10_000_000_000_000,
+        100_000_000_000_000,
+        1_000_000_000_000_000,
+        10_000_000_000_000_000,
+        100_000_000_000_000_000,
+        1_000_000_000_000_000_000,
+    )
+

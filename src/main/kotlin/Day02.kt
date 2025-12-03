@@ -1,6 +1,6 @@
 import utils.pow
 
-class Day02 : Day(2, 2025) {
+class Day02 : Day(2, 2025, "Gift Shop") {
 
     private val ranges = input.string.split(',').map { it.split('-').map { it.toLong() }.let { (a, b) -> a..b } }
 
