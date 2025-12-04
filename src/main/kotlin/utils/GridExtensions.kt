@@ -143,11 +143,18 @@ fun <T> Grid<T>.fixed(default: T): Grid<T> {
 }
 
 /**
- * Checks the given [Grid] for irregularities, i.e. rows that are of different length.
+ * Checks the given [Grid] for irregularities, i.e., rows that are of different length.
  */
 fun <T> Grid<T>.requireRegular(): Grid<T> = this.also {
     val (min, max) = asSequence().map { it.size }.minMaxOrNull() ?: return this
     require(min == max) { "Grid is NOT regular. Lines ${indices.filter { this[it].size < max }} are too short." }
+}
+
+/**
+ * Returns a sequence of all position coordinates.
+ */
+fun Grid<*>.allPoints(): Sequence<Point> = sequence {
+    forArea { yield(it) }
 }
 
 /**
@@ -165,13 +172,13 @@ fun <T> Grid<T>.allPointsAndValues(): Sequence<Pair<Point, T>> = sequence {
 fun <T> Grid<T>.indexOfOrNull(e: T): Point? = search(e).firstOrNull()
 
 /**
- * Searches the grid from top most left point left to right, top to bottom for matching predicate.
+ * Searches the grid from the top-left point left to right, top to bottom for matching predicate.
  */
 inline fun <T> Grid<T>.search(crossinline predicate: (T) -> Boolean): Sequence<Point> =
     area.allPoints().filter { predicate(this[it]) }
 
 /**
- * Searches the grid from top most left point left to right, top to bottom for matching elements.
+ * Searches the grid from the top-left point left to right, top to bottom for matching elements.
  */
 fun <T> Grid<T>.search(vararg elements: T): Sequence<Point> =
     search { it in elements }
