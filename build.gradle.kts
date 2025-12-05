@@ -21,18 +21,22 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-//    implementation("org.jetbrains.kotlinx:multik-core:0.2.3")
-//    implementation("org.jetbrains.kotlinx:multik-default:0.2.3")
-
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("com.github.ajalt.mordant:mordant:3.0.2")
-    implementation("guru.nidi:graphviz-kotlin:0.18.1")
-    implementation("org.slf4j:slf4j-nop:2.0.17")
-    //implementation("ch.qos.logback:logback-classic:1.5.21")
+
     implementation("io.arrow-kt:arrow-core:$arrow")
     implementation("io.arrow-kt:arrow-fx-coroutines:$arrow")
 
-    //implementation("org.choco-solver:choco:4.10.14")
+//    implementation("org.jetbrains.kotlinx:multik-core:0.2.3")
+//    implementation("org.jetbrains.kotlinx:multik-default:0.2.3")
+
+//    implementation("org.choco-solver:choco:4.10.14")
+
+    implementation("guru.nidi:graphviz-kotlin:0.18.1")
+    implementation("org.slf4j:slf4j-nop:2.0.17")
+//    implementation("ch.qos.logback:logback-classic:1.5.21")
+
+    implementation("com.toldoven.aoc:aoc-kotlin-notebook:1.1.2")
 
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

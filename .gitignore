@@ -1,3 +1,6 @@
+.aocToken
+.aocCache
+
 session-cookie
 leaderboard/
 puzzles

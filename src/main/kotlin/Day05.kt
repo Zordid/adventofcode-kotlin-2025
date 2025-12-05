@@ -15,12 +15,12 @@ class Day05 : Day(5, 2025, "Cafeteria") {
         val mergedRanges = freshIngredientRanges.sortedBy { it.first }.fold(emptyList<LongRange>()) { acc, next ->
             val prev = acc.lastOrNull() ?: return@fold listOf(next)
 
-            when {
-                // (-----) [~~~~~]  not touching at all
+            when { // A: prev, B: next
+                // (A----) [B~~~~]  not touching at all
                 next.first > prev.last + 1 -> acc.plusElement(next)
-                // (----[===)~~~~]  overlapping or touching
+                // (A---[B==)~~~~]  overlapping or touching
                 next.last > prev.last -> acc.dropLast(1).plusElement(prev.first..next.last)
-                // (----[===]----)  completely overlapping
+                // (A---[B==]---A)  completely overlapping
                 else -> acc
             }
         }
