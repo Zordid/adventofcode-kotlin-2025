@@ -1,12 +1,7 @@
 package utils.dim3d
 
 import com.github.ajalt.mordant.rendering.TextColors
-import utils.areaTo
-import utils.minMax
-import utils.plot
-import utils.transposed
-import utils.x
-import utils.y
+import utils.*
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -119,7 +114,7 @@ fun Point3D.surroundingNeighbors(cube: Cube): List<Point3D> = buildList {
 
 /**
  * Rotate the given point around an arbitrary vector by 90 degrees.
- * Important: the given axis vector must be a unit vector or else the length will be messed up.
+ * Important: the given axis vector must be a unit vector, or else the length will be messed up.
  *
  * From: https://stackoverflow.com/a/6721649/273456
  */
