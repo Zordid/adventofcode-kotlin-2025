@@ -1,43 +1,35 @@
-// ... existing code ...
 import java.awt.*
-import java.awt.event.ActionListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
-import kotlin.math.max
 
-// Visualization State
 enum class State { SHOW_UNSORTED, SORTING, MERGED_WAIT, MERGING, FINISHED }
 
-fun vis(day05: Day05) {
-// Assume 'ranges' is available from previous cells
-    val ranges = day05.freshIngredientRanges.map { it.first to it.last }
+fun visualize(inputRanges: List<LongRange>) {
+    val ranges = inputRanges.map { it.first to it.last }
     val unsortedRanges = ranges
-// We still keep reference sorted list for speed validation if needed, but we'll sort visually
-    val finalSortedRanges = ranges.sortedBy { it.first }
 
-// Backing list for the UI - starts unsorted, gets modified in place
+    // Backing list for the UI - starts unsorted, gets modified in place
     val displayList = unsortedRanges.toMutableList()
 
-// Global bounds for consistent scaling
+    // Global bounds for consistent scaling
     val minVal = ranges.minOf { it.first }
     val maxVal = ranges.maxOf { it.second }
     val rangeSpan = (maxVal - minVal).coerceAtLeast(1)
 
-
-
+    // Visualization State
     var currentState = State.SHOW_UNSORTED
     var message = "Original Ranges (Unsorted)"
 
-// Sorting State Variables
-    var sortI = 0 // The boundary of the sorted section (top)
-    var sortJ = displayList.size - 1 // The scanning index (moves bottom -> top)
+    // Sorting State Variables
+    var sortI = 0
+    var sortJ = displayList.size - 1
 
-// Merging State Variables
+    // Merging State Variables
     var mergeIndex = 0
-    var mergedList = mutableListOf<Pair<Long, Long>>()
+    val mergedList = mutableListOf<Pair<Long, Long>>()
 
-// UI Layout Constants
+    // UI Layout Constants
     val rowHeight = 20
     val padding = 50
 
@@ -46,7 +38,13 @@ fun vis(day05: Day05) {
     frame.setSize(1200, 800)
     frame.layout = BorderLayout()
 
-// --- 1. Top Panel: Scrollable List (Unsorted -> Sorted) ---
+    // --- Control Panel ---
+    val controlPanel = JPanel(FlowLayout(FlowLayout.LEFT))
+    val restartButton = JButton("Restart Animation")
+    controlPanel.add(restartButton)
+    frame.add(controlPanel, BorderLayout.NORTH)
+
+    // --- 1. Top Panel: Scrollable List (Unsorted -> Sorted) ---
     val inputPanel = object : JPanel() {
         init {
             background = Color.WHITE
@@ -72,7 +70,6 @@ fun vis(day05: Day05) {
             g2d.font = Font("SansSerif", Font.BOLD, 16)
             g2d.drawString(message, 10, 25)
 
-            // Optimization: Culling
             val clip = g.clipBounds ?: Rectangle(0, 0, width, height)
             val startIndex = ((clip.y - 50) / rowHeight).coerceAtLeast(0)
             val endIndex = (((clip.y + clip.height - 50) / rowHeight) + 1).coerceAtMost(displayList.size - 1)
@@ -82,18 +79,17 @@ fun vis(day05: Day05) {
                     val range = displayList[i]
                     val drawY = 50 + i * rowHeight
 
-                    // Color Logic
                     when (currentState) {
                         State.SORTING -> {
-                            if (i < sortI) g2d.color = Color(100, 149, 237) // Sorted (Blue)
-                            else if (i == sortJ || i == sortJ - 1) g2d.color = Color.ORANGE // Active Compare
-                            else g2d.color = Color.LIGHT_GRAY // Unsorted
+                            if (i < sortI) g2d.color = Color(100, 149, 237)
+                            else if (i == sortJ || i == sortJ - 1) g2d.color = Color.ORANGE
+                            else g2d.color = Color.LIGHT_GRAY
                         }
 
                         State.MERGING -> {
-                            if (i == mergeIndex) g2d.color = Color.ORANGE // Active Merge
-                            else if (i < mergeIndex) g2d.color = Color.LIGHT_GRAY // Processed
-                            else g2d.color = Color(100, 149, 237) // Pending
+                            if (i == mergeIndex) g2d.color = Color.ORANGE
+                            else if (i < mergeIndex) g2d.color = Color.LIGHT_GRAY
+                            else g2d.color = Color(100, 149, 237)
                         }
 
                         else -> g2d.color = Color(100, 149, 237)
@@ -105,7 +101,6 @@ fun vis(day05: Day05) {
 
                     g2d.fillRect(x1, drawY, w, rowHeight - 4)
 
-                    // Highlight border for active items
                     if ((currentState == State.MERGING && i == mergeIndex) ||
                         (currentState == State.SORTING && (i == sortJ || i == sortJ - 1))
                     ) {
@@ -122,7 +117,7 @@ fun vis(day05: Day05) {
     scrollPane.verticalScrollBar.unitIncrement = 16
     frame.add(scrollPane, BorderLayout.CENTER)
 
-// --- 2. Bottom Panel: Fixed Merged Result ---
+    // --- 2. Bottom Panel: Fixed Merged Result ---
     val mergedPanel = object : JPanel() {
         init {
             preferredSize = Dimension(1200, 120)
@@ -168,18 +163,43 @@ fun vis(day05: Day05) {
 
     frame.add(mergedPanel, BorderLayout.SOUTH)
 
-// --- 3. Animation Logic ---
-// Dynamic speed calculation
+    // --- 3. Animation Logic ---
     val n = displayList.size
-// Sorting complexity is N^2. We want to finish in ~3 seconds (approx 180 ticks at 16ms).
-// Ops per tick = (N*N/2) / 180
     val sortOpsTotal = n.toLong() * n / 2
     val sortOpsPerTick = (sortOpsTotal / 180).toInt().coerceIn(1, 50000)
-
-// Merging complexity is N. Finish in ~3 seconds.
     val mergeOpsPerTick = (n / 180).coerceIn(1, 100)
 
     val timer = Timer(16, null) // ~60 FPS target
+
+    fun resetAnimation() {
+        timer.stop()
+
+        // Reset Data
+        displayList.clear()
+        displayList.addAll(unsortedRanges)
+        mergedList.clear()
+
+        // Reset State
+        currentState = State.SHOW_UNSORTED
+        message = "Original Ranges (Unsorted)"
+        sortI = 0
+        sortJ = displayList.size - 1
+        mergeIndex = 0
+
+        // Reset View
+        scrollPane.viewport.viewPosition = Point(0, 0)
+
+        timer.initialDelay = 500
+        timer.start()
+
+        inputPanel.repaint()
+        mergedPanel.repaint()
+    }
+
+    restartButton.addActionListener {
+        resetAnimation()
+    }
+
     timer.addActionListener {
         var repaintNeeded = false
 
@@ -188,9 +208,6 @@ fun vis(day05: Day05) {
                 if (timer.initialDelay == 0) {
                     currentState = State.SORTING
                     message = "Sorting Ranges (Sinking Sort)..."
-                    // Initialize sort variables
-                    sortI = 0
-                    sortJ = displayList.size - 1
                     repaintNeeded = true
                 } else {
                     timer.initialDelay = 0
@@ -202,7 +219,6 @@ fun vis(day05: Day05) {
                 while (ops < sortOpsPerTick && currentState == State.SORTING) {
                     if (sortI < displayList.size - 1) {
                         if (sortJ > sortI) {
-                            // Compare adjacent
                             if (displayList[sortJ].first < displayList[sortJ - 1].first) {
                                 val tmp = displayList[sortJ]
                                 displayList[sortJ] = displayList[sortJ - 1]
@@ -210,7 +226,6 @@ fun vis(day05: Day05) {
                             }
                             sortJ--
                         } else {
-                            // Finished one pass, item at sortI is settled
                             sortI++
                             sortJ = displayList.size - 1
                         }
@@ -222,7 +237,6 @@ fun vis(day05: Day05) {
                         repaintNeeded = true
                     }
                 }
-                // Scroll to follow the sorted boundary 'sortI'
                 if (currentState == State.SORTING) {
                     val targetY = 50 + (sortI * rowHeight)
                     val viewRect = scrollPane.viewport.viewRect
@@ -237,8 +251,7 @@ fun vis(day05: Day05) {
             State.MERGED_WAIT -> {
                 currentState = State.MERGING
                 message = "Merging..."
-                timer.delay = 16 // Back to fast speed
-                // Reset scroll to top
+                timer.delay = 16
                 scrollPane.viewport.viewPosition = Point(0, 0)
             }
 
@@ -272,7 +285,6 @@ fun vis(day05: Day05) {
                 if (currentState == State.MERGING) {
                     val targetY = 50 + (mergeIndex * rowHeight)
                     val viewRect = scrollPane.viewport.viewRect
-                    // Keep active item visible
                     if (targetY > viewRect.y + viewRect.height - 100) {
                         val newY = (targetY - viewRect.height + 100).coerceAtLeast(0)
                         scrollPane.viewport.viewPosition = Point(0, newY)
@@ -302,6 +314,9 @@ fun vis(day05: Day05) {
     frame.isVisible = true
 }
 
+// Usage:
+// visualize(ranges.map { it.first..it.second })
+// ... existing code ...
 fun main() {
-    vis(Day05())
+    visualize(Day05().freshIngredientRanges)
 }
