@@ -73,7 +73,7 @@ interface MinMax<T> {
 data class MinMaxResult<T>(override val min: T, override val max: T) : MinMax<T>
 
 data class MinMaxRange<T : Comparable<T>>(
-    override val min: T, override val max: T
+    override val min: T, override val max: T,
 ) : MinMax<T>, ClosedRange<T> {
     override val start: T get() = min
     override val endInclusive: T get() = max
@@ -85,8 +85,10 @@ val MinMaxRange<Char>.range: CharRange get() = min..max
 
 @JvmName("iteratorInt")
 operator fun MinMaxRange<Int>.iterator(): Iterator<Int> = range.iterator()
+
 @JvmName("iteratorLong")
 operator fun MinMaxRange<Long>.iterator(): Iterator<Long> = range.iterator()
+
 @JvmName("iteratorChar")
 operator fun MinMaxRange<Char>.iterator(): Iterator<Char> = range.iterator()
 
@@ -104,6 +106,29 @@ fun <T : Comparable<T>> Sequence<T>.minMaxOrNull(): MinMaxRange<T>? = asIterable
  * Returns the smallest and largest element or throws [NoSuchElementException] if there are no elements.
  */
 fun <T : Comparable<T>> Sequence<T>.minMax(): MinMaxRange<T> = minMaxOrNull() ?: throw NoSuchElementException()
+
+/**
+ * Returns the smallest and largest value returned by [selector] or `null` if there are no elements.
+ */
+inline fun <T, R : Comparable<R>> Iterable<T>.minMaxOfOrNull(selector: (T) -> R): MinMaxRange<R>? {
+    val iterator = iterator()
+    if (!iterator.hasNext()) return null
+    var maxValue = selector(iterator.next())
+    var minValue = maxValue
+    while (iterator.hasNext()) {
+        val v = selector(iterator.next())
+        if (maxValue < v) maxValue = v
+        if (minValue > v) minValue = v
+    }
+    return MinMaxRange(minValue, maxValue)
+}
+
+/**
+ * Returns the smallest and largest value returned by [selector] or throws [NoSuchElementException] if there
+ * are no elements.
+ */
+inline fun <T, R : Comparable<R>> Iterable<T>.minMaxOf(selector: (T) -> R): MinMaxRange<R> =
+    minMaxOfOrNull(selector) ?: throw NoSuchElementException()
 
 /**
  * Returns the first element yielding the smallest and the first element yielding the largest value

@@ -2,10 +2,11 @@ import utils.*
 
 class Day05 : Day(5, 2025, "Cafeteria") {
 
-    val freshIngredientRanges = input.sections[0].lines
-        .map { it.split('-').let { (a, b) -> a.toLong()..b.toLong() } }
+    val freshIngredientRanges = input.sections[0].map {
+         it.split('-').let { (a, b) -> a.toLong()..b.toLong() }
+    }
 
-    val ingredients = input.sections[1].lines.map { it.toLong() }
+    val ingredients = input.sections[1].map { it.toLong() }
 
     override fun part1() = ingredients.count { i ->
         freshIngredientRanges.any { r -> i in r }

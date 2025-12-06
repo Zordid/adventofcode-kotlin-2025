@@ -172,8 +172,13 @@ var verbose = true
 
 class PuzzleInput(private val _raw: String) {
     private val _lines by lazy { _raw.lines() }
-    val lines: List<String> by lazy { _lines.show("lines with max length ${_lines.maxOfOrNull { it.length }}") }
-    val grid: Grid<Char> by lazy { _lines.map { it.toList() }.show() }
+    val lines: List<String> by lazy {
+        val lengths = _lines.minMaxOfOrNull { it.length }?.let { r ->
+            if (r.max - r.min > 0) "${r.min} - ${r.max}" else r.min.toString()
+        }
+        _lines.show("lines with length ${lengths ?: "unknown"}")
+    }
+    val grid: Grid<Char> by lazy { _lines.map { it.toList() }.fixed(' ').show() }
     val integers: List<Int> by lazy {
         val integers = _lines.singleOrNull()?.extractAllIntegers() ?: _lines.mapNotNull { it.extractFirstIntOrNull() }
         integers.show("Int values")
@@ -402,9 +407,9 @@ class ParserContext(private val columnSeparator: Regex, private val line: String
     val longs: List<Long> by lazy { line.extractAllLongs() }
 }
 
-fun String.extractFirstInt() = extractFirstIntOrNull() ?: error("does not contain any Int value")
+fun String.extractFirstInt() = extractFirstIntOrNull() ?: error("'$this'does not contain any Int value")
 fun String.extractFirstIntOrNull() = toIntOrNull() ?: sequenceContainedIntegers().firstOrNull()
-fun String.extractFirstLong() = extractFirstLongOrNull() ?: error("does not contain any Long value")
+fun String.extractFirstLong() = extractFirstLongOrNull() ?: error("'$this'does not contain any Long value")
 fun String.extractFirstLongOrNull() = toLongOrNull() ?: sequenceContainedLongs().firstOrNull()
 
 private val numberRegex = Regex("(-+)?\\d+")
