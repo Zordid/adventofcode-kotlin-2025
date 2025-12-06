@@ -14,17 +14,19 @@ open class Day06 : Day(6, 2025, "Trash Compactor") {
         problemNotes.transposed().reversed().solveProblems()
 
     private fun List<String>.solveProblems(): Long =
-        fold(listOf(0L)) { total, statement ->
+        fold(listOf(0L)) { stack, statement ->
             log { statement }
             val (digits, nonDigits) = statement.partition { it.isDigit() }
             val number = digits.toLongOrNull()
             val op = nonDigits.trim().takeIf { it.isNotEmpty() }
 
-            (total + listOfNotNull(number)).let {
+            (stack + listOfNotNull(number)).let { updatedStack ->
+                if (op == null) return@fold updatedStack
+                val total = updatedStack.first()
+                val values = updatedStack.drop(1)
                 when (op) {
-                    null -> it
-                    "+" -> listOf(it.first() + it.drop(1).sum())
-                    "*" -> listOf(it.first() + it.drop(1).product())
+                    "+" -> listOf(total + values.sum())
+                    "*" -> listOf(total + values.product())
                     else -> error(statement)
                 }
             }.also { log { "=> $it" } }
