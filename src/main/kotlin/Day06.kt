@@ -7,7 +7,7 @@ open class Day06 : Day(6, 2025, "Trash Compactor") {
 
     override fun part1() =
         problemNotes.last().withIndex().filter { (_, c) -> c != ' ' }.flatMap { (idx, _) ->
-            problemNotes.map { it.drop(idx).trim().takeWhile { it != ' ' } }
+            problemNotes.map { it.drop(idx).trimStart().takeWhile { it != ' ' } }
         }.solveProblems()
 
     override fun part2() =
