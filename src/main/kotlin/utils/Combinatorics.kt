@@ -33,9 +33,14 @@ fun <T> Iterable<T>.combinations(size: Int): Sequence<List<T>> =
     toList().combinations(size)
 
 /**
- * Generates all combinations of the elements of the given list for the requested size.
+ * Generates all combinations of the given elements for the requested size.
  * The resulting sequence will contain "n choose k" elements.
  * Note: combinations do not include all their permutations!
+ *
+ * Example:
+ *
+ *      listOf(1, 2, 3).combinations(2) -> [1, 2], [1, 3], [2, 3]
+ *
  * @receiver the list to take elements from
  * @param k the size of the combinations to create
  * @return a sequence of all combinations
@@ -44,7 +49,7 @@ fun <T> Iterable<T>.combinations(size: Int): Sequence<List<T>> =
 fun <T> List<T>.combinations(k: Int): Sequence<List<T>> {
     val n = this.size
     return when {
-        k < 0 || k > n -> emptySequence()
+        k !in 0..n -> emptySequence()
         k == 0 -> sequenceOf(emptyList())
         k == 1 -> asSequence().map { listOf(it) }
         k == n -> sequenceOf(this)
@@ -69,19 +74,24 @@ fun <T> List<T>.combinations(k: Int): Sequence<List<T>> {
 }
 
 /**
- * Generates all combinations of the elements of the given [IntRange] for the requested size.
+ * Generates all combinations of the range elements for the requested size.
  * Note: combinations do not include all their permutations!
+ *
+ * Example:
+ *
+ *      (1..3).combinations(2) -> [1, 2], [1, 3], [2, 3]
+ *
  * @receiver the [IntRange] to take elements from
  * @param k the size of the combinations to create
  * @return a sequence of all combinations
  */
 fun IntRange.combinations(k: Int): Sequence<List<Int>> {
     val n = this.size
-    return when {
-        k < 0 || k > n -> emptySequence()
-        k == 0 -> sequenceOf(emptyList())
-        k == 1 -> asSequence().map { listOf(it) }
-        k == n -> sequenceOf(this.toList())
+    return when (k) {
+        !in 0..n -> emptySequence()
+        0 -> sequenceOf(emptyList())
+        1 -> asSequence().map { listOf(it) }
+        n -> sequenceOf(this.toList())
         else -> sequence {
             for (element in this@combinations) {
                 val head = listOf(element)
@@ -153,7 +163,7 @@ fun <E> List<E>.withRemoved(removeIndices: Set<Int>): List<E> {
 
 private class ListWithExclusions<T>(
     private val backingList: List<T>,
-    val excludedIndicesInOrder: List<Int> = emptyList()
+    val excludedIndicesInOrder: List<Int> = emptyList(),
 ) : List<T> {
 
     private fun effectiveIndex(viewIndex: Int): Int {
