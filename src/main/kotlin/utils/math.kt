@@ -72,7 +72,7 @@ fun Long.primes(): Sequence<Long> = sequence {
 infix fun Int.pow(power: Int): Long {
     require(power >= 0) { "Power must be non-negative" }
     if (power == 0) return 1L
-    if (this == 10) return powersOf10L[power]
+    if (this == 10) return powerOf10L(power)
 
     var p = power
     var b = this.toLong()
@@ -85,8 +85,8 @@ infix fun Int.pow(power: Int): Long {
     return res
 }
 
-fun powerOf10(n: Int): Int = powersOf10[n]
-fun powerOf10L(n: Int): Long = powersOf10L[n]
+fun powerOf10(n: Int): Int = powersOf10.getOrElse(n) { throw IllegalArgumentException("Integer overflow for 10^$n") }
+fun powerOf10L(n: Int): Long = powersOf10L.getOrElse(n) { throw IllegalArgumentException("Long overflow for 10^$n") }
 
 fun Iterable<Long>.product(): Long = reduce(Long::safeTimes)
 
