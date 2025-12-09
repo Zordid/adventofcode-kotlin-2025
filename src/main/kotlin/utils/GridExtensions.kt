@@ -135,19 +135,36 @@ fun <T> Grid<T>.fixedWithNull(): Grid<T?> = fixed(null)
  * @return a completely uniform n x m Grid
  */
 fun <T> Grid<T>.fixed(default: T): Grid<T> {
-    val (min, max) = asSequence().map { it.size }.minMaxOrNull() ?: return this
+    val (min, max) = minMaxWidths()
     if (min == max) return this
     return map { row ->
         row.takeIf { row.size == max } ?: List(max) { idx -> if (idx <= row.lastIndex) row[idx] else default }
     }
 }
 
+fun Grid<*>.isRegular() =
+    minMaxWidths().let { it.min == it.max }
+
+@JvmName("isRegularStringGrid")
+fun List<String>.isRegular() =
+    minMaxWidths().let { it.min == it.max }
+
 /**
  * Checks the given [Grid] for irregularities, i.e., rows that are of different length.
  */
-fun <T> Grid<T>.requireRegular(): Grid<T> = this.also {
-    val (min, max) = asSequence().map { it.size }.minMaxOrNull() ?: return this
-    require(min == max) { "Grid is NOT regular. Lines ${indices.filter { this[it].size < max }} are too short." }
+fun <T> Grid<T>.requireIsRegular(): Grid<T> = also {
+    require(isRegular()) {
+        val maxWidth = maxOf { it.size }
+        "Grid is NOT regular. Lines ${indices.filter { this[it].size < maxWidth }} are too short."
+    }
+}
+
+@JvmName("requireIsRegularStringGrid")
+fun List<String>.requireIsRegular(): List<String> = also {
+    require(isRegular()) {
+        val maxWidth = maxOf { it.length }
+        "Grid is NOT regular. Lines ${indices.filter { this[it].length < maxWidth }} are too short."
+    }
 }
 
 /**
@@ -221,7 +238,7 @@ fun <T> Grid<T>.toMapGrid(vararg sparseElements: T): Map<Point, T> =
     toMapGrid { it in sparseElements }
 
 inline fun <T> Grid<T>.toMapGrid(sparsePredicate: (T) -> Boolean): MapGrid<T> =
-    buildMap { forAreaIndexed { p, v -> if (!sparsePredicate(v)) this[p] = v } }
+    buildMap { forAreaIndexed { p, v -> if (!sparsePredicate(v)) put(p, v) } }
 
 fun <T, R> Grid<T>.mapValues(transform: (T) -> R): Grid<R> =
     map { it.map(transform) }
@@ -267,11 +284,22 @@ fun List<String>.getOrElse(p: Point, default: (Point) -> Char): Char =
     if (p.y in indices && p.x in this[p.y].indices) this[p.y][p.x]
     else default(p)
 
-private fun Grid<*>.notInGridError(p: Point): Nothing =
-    error("Point $p not in grid of dimensions $width x $height")
+private fun Grid<*>.minMaxWidths(): MinMax<Int> =
+    minMaxOfOrNull { it.size } ?: MinMaxResult(0, 0)
 
-private fun List<String>.notInListGridError(p: Point): Nothing =
+@JvmName("minMaxWidthsStringGrid")
+private fun List<String>.minMaxWidths(): MinMax<Int> =
+    minMaxOfOrNull { it.length } ?: MinMaxResult(0, 0)
+
+private fun Grid<*>.notInGridError(p: Point): Nothing {
+    requireIsRegular()
+    error("Point $p not in grid of dimensions $width x $height")
+}
+
+private fun List<String>.notInListGridError(p: Point): Nothing {
+    requireIsRegular()
     error("Point $p not in grid of dimensions ${firstOrNull()?.length ?: 0} x $size")
+}
 
 fun <T : Any> Grid<T>.explode(filler: T? = null): Grid<T> =
     MutableGrid(area.scale(3)) { p ->

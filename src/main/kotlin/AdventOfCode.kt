@@ -227,7 +227,7 @@ class PuzzleInput(private val _raw: String) {
             println(plot(colors = colors))
         }
 
-        return this.requireRegular()
+        return this.requireIsRegular()
     }
 
     private fun <T : List<E>, E : Any?> T.show(title: String, maxLines: Int = 10): T {

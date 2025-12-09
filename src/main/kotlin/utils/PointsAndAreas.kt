@@ -9,6 +9,9 @@ typealias Point = Pair<Int, Int>
 val Point.x: Int get() = first
 val Point.y: Int get() = second
 
+private val Point.xLong: Long get() = first.toLong()
+private val Point.yLong: Long get() = second.toLong()
+
 data class Area(val upperLeft: Point, val lowerRight: Point) {
 
     constructor(size: Int) : this(origin, (size - 1) to (size - 1))
@@ -367,3 +370,16 @@ enum class Direction8(override val vector: Point, override val symbol: Char) : D
         inline fun <T> map(f: (p: Direction8) -> T) = all.map(f)
     }
 }
+
+enum class Orientation {
+    COLLINEAR,
+    CLOCKWISE,
+    COUNTERCLOCKWISE
+}
+
+fun orientation(p: Point, q: Point, r: Point): Orientation =
+    when ((q.yLong - p.yLong) * (r.xLong - q.xLong) - (q.xLong - p.xLong) * (r.yLong - q.yLong)) {
+        0L -> Orientation.COLLINEAR
+        in 1..Long.MAX_VALUE -> Orientation.COUNTERCLOCKWISE
+        else -> Orientation.CLOCKWISE
+    }
