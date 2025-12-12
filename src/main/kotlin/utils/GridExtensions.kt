@@ -225,6 +225,12 @@ fun <T> Grid<T>.column(col: Int): List<T> = List(height) { row -> this[row][col]
 fun <T> Grid<T>.transposed(): Grid<T> =
     Grid(width = height, height = width) { (x, y) -> this[x][y] }
 
+fun <T> Grid<T>.flippedY(): Grid<T> =
+    Grid(width = width, height = height) { (x, y) -> this[height - 1 - y][x] }
+
+fun <T> Grid<T>.flippedX(): Grid<T> =
+    Grid(width = width, height = height) { (x, y) -> this[y][width - 1 - x] }
+
 fun <T> Grid<T>.rotate90(): Grid<T> =
     Grid(width = height, height = width) { (x, y) -> this[height - 1 - x][y] }
 

@@ -15,13 +15,14 @@ private val Point.yLong: Long get() = second.toLong()
 data class Area(val upperLeft: Point, val lowerRight: Point) {
 
     constructor(size: Int) : this(origin, (size - 1) to (size - 1))
+    constructor(width: Int, height: Int) : this(origin, (width - 1) to (height - 1))
 
-    fun Area.isEmpty() = size == 0
+    fun Area.isEmpty() = size == 0L
     fun Area.isNotEmpty() = !isEmpty()
 
     val width: Int get() = (lowerRight.x - upperLeft.x + 1).coerceAtLeast(0)
     val height: Int get() = (lowerRight.y - upperLeft.y + 1).coerceAtLeast(0)
-    val size: Int get() = width * height
+    val size: Long get() = width.toLong() safeTimes height
 
     val upperRight: Point get() = lowerRight.x to upperLeft.y
     val lowerLeft: Point get() = upperLeft.x to lowerRight.y
@@ -36,7 +37,7 @@ data class Area(val upperLeft: Point, val lowerRight: Point) {
     fun fixed(): Area = if (isValid()) this else of(upperLeft, lowerRight)
 
     operator fun plus(other: Area) =
-        listOf(upperLeft, lowerRight, other.upperLeft, other.lowerRight).boundingArea()!!
+        arrayOf(upperLeft, lowerRight, other.upperLeft, other.lowerRight).asIterable().boundingArea()!!
 
     operator fun contains(p: Point) = p.x in leftToRight && p.y in topToBottom
 
@@ -78,6 +79,14 @@ data class Area(val upperLeft: Point, val lowerRight: Point) {
     companion object {
         val EMPTY = Area(origin, -1 to -1)
 
+        /**
+         * Creates an instance of `Area` that represents the rectangular region defined by two points.
+         * The resulting area will always have its boundaries set correctly regardless of the order of the input points.
+         *
+         * @param a the first point that helps define the rectangle
+         * @param b the second point that helps define the rectangle
+         * @return an `Area` instance representing the rectangle defined by the two points
+         */
         fun of(a: Point, b: Point) =
             Area(min(a.x, b.x) to min(a.y, b.y), max(a.x, b.x) to max(a.y, b.y))
     }
@@ -118,26 +127,42 @@ infix fun Point.isDirectNeighborOf(other: Point): Boolean =
     (this - other).manhattanDistance == 1
 
 /**
- * calculates the list of the four direct neighbors of the point.
+ * Calculates the list of direct neighbors for this point.
+ * Direct neighbors are determined based on four cardinal directions (up, down, left, right).
+ *
+ * @return A list of points representing the direct neighbors of the current point
  */
-fun Point.directNeighbors(): List<Point> = Direction4.allVectors.map { this + it }
+fun Point.directNeighbors(): List<Point> =
+    Direction4.allVectors.map { dir -> this + dir }
 
 /**
- * calculates the list of the four direct neighbors of the point, but removes the ones outside the given [area].
+ * Calculates the list of direct neighbors for this point limited by a specified area.
+ * Direct neighbors are determined based on four cardinal directions (up, down, left, right).
+ *
+ * @param area the area limiting the result
+ * @return a list of points representing the direct neighbors within the given area
  */
 fun Point.directNeighbors(area: Area): List<Point> =
-    Direction4.allVectors.mapNotNull { (this + it).takeIf { it in area } }
+    Direction4.allVectors.mapNotNull { dir -> (this + dir).takeIf { it in area } }
 
 /**
- * calculates the list of the eight direct neighbors of the point.
+ * Calculates the list of points representing all neighboring positions surrounding the current point.
+ * Surrounding neighbors are based on eight possible directions (North, South, East, West, and the four diagonals).
+ *
+ * @return a list of points representing the surrounding neighbors of the current point
  */
-fun Point.surroundingNeighbors(): List<Point> = Direction8.allVectors.map { this + it }
+fun Point.surroundingNeighbors(): List<Point> =
+    Direction8.allVectors.map { dir -> this + dir }
 
 /**
- * calculates the list of the eight direct neighbors of the point, but removes the ones outside the given [area].
+ * Calculates the list of points representing all neighboring positions surrounding this point limited by a specified area.
+ * Surrounding neighbors are based on eight possible directions (North, South, East, West, and the four diagonals).
+ *
+ * @param area the area within which the neighboring points must exist
+ * @return a list of points representing the surrounding neighbors within the given area
  */
 fun Point.surroundingNeighbors(area: Area): List<Point> =
-    Direction8.allVectors.mapNotNull { (this + it).takeIf { it in area } }
+    Direction8.allVectors.mapNotNull { dir -> (this + dir).takeIf { it in area } }
 
 val origin: Point = 0 to 0
 val emptyArea: Area = Area.EMPTY
@@ -245,7 +270,6 @@ fun Area.corners(): Sequence<Point> =
 
 operator fun Area.plus(amount: Int) = grow(by = amount)
 operator fun Area.minus(amount: Int) = shrink(by = amount)
-
 
 fun Area.overlaps(other: Area): Boolean =
     max(left, other.left) <= min(right, other.right) && max(top, other.top) <= min(bottom, other.bottom)

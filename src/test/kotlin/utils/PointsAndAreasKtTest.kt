@@ -1,17 +1,18 @@
 package utils
 
+import io.kotest.assertions.withClue
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.ints.shouldBeExactly
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.sequences.shouldHaveCount
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 internal class PointsAndAreasKtTest {
@@ -47,14 +48,15 @@ internal class PointsAndAreasKtTest {
     }
 
     private fun Area.assertArea(emptiness: Boolean, width: Int, height: Int, border: Int) {
-        println(this)
-        assertEquals(emptiness, this.isEmpty())
-        assertEquals(width, this.width)
-        assertEquals(height, this.height)
-        assertEquals(width * height, this.size)
-        assertEquals(width * height, this.allPoints().count())
-        assertEquals(border, this.border().count())
-        this.allPoints().forEach { assertTrue(it in this) }
+        withClue(toString()) {
+            isEmpty() shouldBe emptiness
+            this.width shouldBe width
+            this.height shouldBe height
+            size shouldBe width * height
+            border() shouldHaveCount border
+            allPoints() shouldHaveCount width * height
+            allPoints().forAll { (it in this).shouldBeTrue() }
+        }
     }
 
     @Test
@@ -115,7 +117,7 @@ internal class PointsAndAreasKtTest {
                 area.border().distinct().count() shouldBeExactly area.width * 2 + (area.height - 2) * 2
 
                 val content = area.allPoints().toSet()
-                content shouldHaveSize area.size
+                content shouldHaveSize area.size.toInt()
 
                 if (area.height > 2 && area.width > 2) {
                     val shrunk = area.shrink(1)

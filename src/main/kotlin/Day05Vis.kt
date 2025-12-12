@@ -1,13 +1,10 @@
 // ... existing code ...
 import java.awt.*
-import java.awt.event.ActionListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.*
-import kotlin.math.max
-import kotlin.math.ceil
 
-enum class State { SHOW_UNSORTED, SORTING, MERGED_WAIT, MERGING, FINISHED }
+private enum class StateX { SHOW_UNSORTED, SORTING, MERGED_WAIT, MERGING, FINISHED }
 
 data class FallingRange(
     val range: Pair<Long, Long>,
@@ -15,7 +12,7 @@ data class FallingRange(
     val targetY: Double,
     val startX: Int,
     val width: Int,
-    val color: Color
+    val color: Color,
 )
 
 fun visualize(inputRanges: List<LongRange>) {
@@ -27,7 +24,7 @@ fun visualize(inputRanges: List<LongRange>) {
     val maxVal = ranges.maxOf { it.second }
     val rangeSpan = (maxVal - minVal).coerceAtLeast(1)
 
-    var currentState = State.SHOW_UNSORTED
+    var currentStateX = StateX.SHOW_UNSORTED
     var message = "Original Ranges (Unsorted)"
 
     var sortI = 0
@@ -112,24 +109,27 @@ fun visualize(inputRanges: List<LongRange>) {
                 val x2 = mapX(range.second)
                 val w = (x2 - x1).coerceAtLeast(2)
 
-                when (currentState) {
-                    State.SORTING -> {
+                when (currentStateX) {
+                    StateX.SORTING -> {
                         if (i < sortI) g2d.color = Color(100, 149, 237)
                         else if (i == sortJ || i == sortJ - 1) g2d.color = Color.ORANGE
                         else g2d.color = Color.LIGHT_GRAY
                     }
-                    State.MERGING -> {
+
+                    StateX.MERGING -> {
                         if (i == mergeIndex) g2d.color = Color.ORANGE
                         else if (i < mergeIndex) g2d.color = Color(240, 240, 240)
                         else g2d.color = Color(100, 149, 237)
                     }
+
                     else -> g2d.color = Color(100, 149, 237)
                 }
 
                 g2d.fillRect(x1, yStart, w, h)
 
-                if ((currentState == State.MERGING && i == mergeIndex) ||
-                    (currentState == State.SORTING && (i == sortJ || i == sortJ - 1))) {
+                if ((currentStateX == StateX.MERGING && i == mergeIndex) ||
+                    (currentStateX == StateX.SORTING && (i == sortJ || i == sortJ - 1))
+                ) {
                     g2d.color = Color.RED
                     if (h > 3) {
                         g2d.stroke = BasicStroke(2f)
@@ -139,7 +139,7 @@ fun visualize(inputRanges: List<LongRange>) {
             }
         }
     }
-    layeredPane.add(inputPanel, Integer(0))
+    layeredPane.add(inputPanel, 0 as Integer)
 
     // --- 2. Merged Panel ---
     val mergedPanel = object : JPanel() {
@@ -181,7 +181,7 @@ fun visualize(inputRanges: List<LongRange>) {
             }
         }
     }
-    layeredPane.add(mergedPanel, Integer(0))
+    layeredPane.add(mergedPanel, 0 as Integer)
 
     // --- 3. Animation Layer ---
     val animPanel = object : JPanel() {
@@ -204,7 +204,7 @@ fun visualize(inputRanges: List<LongRange>) {
             }
         }
     }
-    layeredPane.add(animPanel, Integer(200))
+    layeredPane.add(animPanel, 200 as Integer)
 
     // --- Timer & Logic ---
     val timer = Timer(16, null)
@@ -218,7 +218,7 @@ fun visualize(inputRanges: List<LongRange>) {
         visualMergedList.clear()
         fallingItems.clear()
 
-        currentState = State.SHOW_UNSORTED
+        currentStateX = StateX.SHOW_UNSORTED
         message = "Original Ranges (Unsorted)"
         sortI = 0
         sortJ = displayList.size - 1
@@ -268,23 +268,23 @@ fun visualize(inputRanges: List<LongRange>) {
         val shouldRunLogic = if (speedFactor < 5) (tickCounter % (6 - speedFactor) == 0) else true
 
         if (shouldRunLogic) {
-            when (currentState) {
-                State.SHOW_UNSORTED -> {
+            when (currentStateX) {
+                StateX.SHOW_UNSORTED -> {
                     if (timer.initialDelay == 0) {
-                        currentState = State.SORTING
+                        currentStateX = StateX.SORTING
                         message = "Sorting Ranges..."
                         fullRepaintNeeded = true
                     } else timer.initialDelay = 0
                 }
 
-                State.SORTING -> {
+                StateX.SORTING -> {
                     repeat(opsPerTick) {
                         if (sortI < displayList.size - 1) {
                             if (sortJ > sortI) {
-                                if (displayList[sortJ].first < displayList[sortJ-1].first) {
+                                if (displayList[sortJ].first < displayList[sortJ - 1].first) {
                                     val tmp = displayList[sortJ]
-                                    displayList[sortJ] = displayList[sortJ-1]
-                                    displayList[sortJ-1] = tmp
+                                    displayList[sortJ] = displayList[sortJ - 1]
+                                    displayList[sortJ - 1] = tmp
                                 }
                                 sortJ--
                             } else {
@@ -292,7 +292,7 @@ fun visualize(inputRanges: List<LongRange>) {
                                 sortJ = displayList.size - 1
                             }
                         } else {
-                            currentState = State.MERGED_WAIT
+                            currentStateX = StateX.MERGED_WAIT
                             message = "Sorted! Ready to merge."
                             fullRepaintNeeded = true
                             return@repeat
@@ -301,12 +301,12 @@ fun visualize(inputRanges: List<LongRange>) {
                     fullRepaintNeeded = true
                 }
 
-                State.MERGED_WAIT -> {
-                    currentState = State.MERGING
+                StateX.MERGED_WAIT -> {
+                    currentStateX = StateX.MERGING
                     message = "Merging..."
                 }
 
-                State.MERGING -> {
+                StateX.MERGING -> {
                     // Merging speed also scaled by speedFactor
                     val mergeOps = if (speedFactor > 80) speedFactor / 10 else 1
 
@@ -342,14 +342,15 @@ fun visualize(inputRanges: List<LongRange>) {
                             fullRepaintNeeded = true
                         } else {
                             if (fallingItems.isEmpty()) {
-                                currentState = State.FINISHED
+                                currentStateX = StateX.FINISHED
                                 message = "Finished! Final Count: ${logicalMergedList.size}"
                                 fullRepaintNeeded = true
                             }
                         }
                     }
                 }
-                State.FINISHED -> {}
+
+                StateX.FINISHED -> {}
             }
         }
 
@@ -358,7 +359,7 @@ fun visualize(inputRanges: List<LongRange>) {
         }
     }
 
-    frame.addComponentListener(object: java.awt.event.ComponentAdapter() {
+    frame.addComponentListener(object : java.awt.event.ComponentAdapter() {
         override fun componentResized(e: java.awt.event.ComponentEvent?) {
             val w = frame.width
             val h = frame.height
@@ -371,9 +372,14 @@ fun visualize(inputRanges: List<LongRange>) {
 
     timer.initialDelay = 1000
     timer.start()
-    frame.addWindowListener(object : WindowAdapter() { override fun windowClosed(e: WindowEvent?) { timer.stop() } })
+    frame.addWindowListener(object : WindowAdapter() {
+        override fun windowClosed(e: WindowEvent?) {
+            timer.stop()
+        }
+    })
     frame.isVisible = true
 }
+
 // ... existing code ...
 // Usage:
 // visualize(ranges.map { it.first..it.second })

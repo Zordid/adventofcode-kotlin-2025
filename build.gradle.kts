@@ -27,6 +27,10 @@ dependencies {
     implementation("io.arrow-kt:arrow-core:$arrow")
     implementation("io.arrow-kt:arrow-fx-coroutines:$arrow")
 
+    // Google OR Tools
+    implementation("com.google.ortools:ortools-java:9.14.6206")
+
+    // Multik
 //    implementation("org.jetbrains.kotlinx:multik-core:0.2.3")
 //    implementation("org.jetbrains.kotlinx:multik-default:0.2.3")
 
@@ -35,8 +39,6 @@ dependencies {
     implementation("guru.nidi:graphviz-kotlin:0.18.1")
     implementation("org.slf4j:slf4j-nop:2.0.17")
 //    implementation("ch.qos.logback:logback-classic:1.5.21")
-
-    implementation("com.toldoven.aoc:aoc-kotlin-notebook:1.1.2")
 
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")

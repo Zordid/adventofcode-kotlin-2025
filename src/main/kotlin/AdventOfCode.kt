@@ -157,8 +157,10 @@ class SolveDsl<T : Day>(private val dayClass: KClass<T>) {
     }
 
     infix fun TestData.part2(expectedPart2: Any?) {
-        tests.remove(this)
-        copy(expectedPart2 = expectedPart2).also { tests += it }
+        if (expectedPart2 != null) {
+            tests.remove(this)
+            copy(expectedPart2 = expectedPart2).also { tests += it }
+        }
     }
 
     fun isEverythingOK() =
@@ -206,7 +208,7 @@ class PuzzleInput(private val _raw: String) {
             catch({ MapContext(idx).transform(line) }) { raise("Exception on line $idx: $it\n$line") }
         }.getOrElse {
             aocTerminal.danger(it.joinToString("\n")); exitProcess(1)
-        }.show("${_lines.size} mapped elements")
+        }.show("mapped elements")
 
     private fun printTitle(title: String) {
         aocTerminal.println(TextStyles.bold("==== $title ${"=".repeat(50 - title.length - 6)}"))
@@ -230,7 +232,7 @@ class PuzzleInput(private val _raw: String) {
         return this.requireIsRegular()
     }
 
-    private fun <T : List<E>, E : Any?> T.show(title: String, maxLines: Int = 10): T {
+    private fun <T : List<E>, E> T.show(title: String, maxLines: Int = 10): T {
         verbose || return this
 
         printTitle("${this.size} $title")
